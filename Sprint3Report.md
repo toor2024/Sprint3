@@ -209,33 +209,41 @@ The existing `GameLogic` class has been preserved as a backwards-compatible subc
 
 ### Part 2: LLM Analysis of Design Principles (2 points)
 
-*(TODO: Ask ChatGPT to analyze the code for modularity, cohesion, coupling, and encapsulation. Provide screenshots and write 1/2 page discussing the results.)*
-
-**Prompt suggestions to use with ChatGPT:**
-
-Prompt 1:
-```text
-Analyze the following Java class hierarchy for a Peg Solitaire game in terms of modularity, cohesion, coupling, and encapsulation:
-
-- Game (abstract base class): manages Board, validates moves, executes moves, detects game over
-- ManualGame (extends Game): adds randomize() method for randomizing board state
-- AutomatedGame (extends Game): adds autoplayMove() method for computer-driven play
-- Board: manages the grid state (PEG, EMPTY, INVALID cells)
-- SolitaireApp: JavaFX GUI that delegates all logic to Game subclasses
-
-How well does this design adhere to each of these four principles?
-```
-
-Prompt 2 (follow-up):
-```text
-Based on your analysis, what specific improvements could be made to the code to better adhere to these design principles? Are there any violations of these principles in the current design?
-```
-
-Screenshot files:
+I used ChatGPT to analyze the Peg Solitaire class hierarchy against four design principles: modularity, cohesion, coupling, and encapsulation. The full prompts and responses are provided in the screenshots below.
 
 | Item | File |
 |---|---|
 | LLM prompt/response for design analysis 1 | `Sprint3Evidence/design_analysis1.png` |
 | LLM prompt/response for design analysis 2 | `Sprint3Evidence/design_analysis2.png` |
 
-*(TODO: Write 1/2 page discussing the LLM's feedback and any changes made.)*
+#### Prompt 1
+```text
+I have a Peg Solitaire game written in Java with the following class hierarchy:
+- Game (abstract base class): Contains a Board object, validates moves via isValidMove(), executes moves via makeMove(), computes all valid moves via getValidMoves(), and detects game-over via checkGameOver(). Fields: Board board, boolean gameOver, boolean won.
+- ManualGame (extends Game): Adds a randomize() method that randomly redistributes pegs across valid board positions while ensuring at least one valid move exists.
+- AutomatedGame (extends Game): Adds an autoplayMove() method that selects a random valid move from getValidMoves() and executes it.
+- Board: Manages an int[][] grid with cell states (PEG, EMPTY, INVALID). Handles initialization for English, Hexagon, and Diamond board types.
+- SolitaireApp (JavaFX GUI): Handles all user interface. Delegates game logic to Game subclasses.
+- BoardType: Enum with ENGLISH, HEXAGON, DIAMOND.
+- Move: Immutable class representing a peg jump.
+Analyze this design in terms of modularity, cohesion, coupling, and encapsulation.
+```
+
+#### Prompt 2
+```text
+Based on your analysis, what specific improvements could be made to better adhere to these design principles? Are there any violations in the current design?
+```
+
+#### Discussion of LLM Feedback
+
+ChatGPT's analysis identified that the design generally adheres well to the four principles but highlighted several areas for improvement.
+
+For **encapsulation**, the LLM noted that `Game.getBoard()` returns the live Board object, allowing external code to bypass move validation by calling `Board.setCellState()` directly. It also pointed out that the `protected` fields `board`, `gameOver`, and `won` in Game are exposed to subclasses, which is a minor leak. The LLM suggested making these fields private and returning a read-only board view or a copy instead of the live object. While these are valid observations, the current design deliberately exposes the board for simplicity and testability. In a larger production system, returning a copy or read-only view would be the better approach.
+
+For **coupling**, the LLM observed that `SolitaireApp` is tightly coupled to the model internals because it directly reads `Board.PEG`, `Board.EMPTY`, and `Board.INVALID` constants and references both `ManualGame` and `AutomatedGame` concrete classes. It suggested using a capability interface like `Randomizable` or `AutoplayCapable` instead. This is a reasonable improvement, but for a project of this scope, the current level of coupling is acceptable since the GUI must know which buttons to enable for each game mode.
+
+For **cohesion**, the LLM noted that `Board`, `Game`, and `Move` are reasonably cohesive, but `SolitaireApp` handles layout, event handling, mode switching, autoplay orchestration, and status messages all in one class. It suggested splitting SolitaireApp into a view and a controller. It also suggested moving `getRating()` out of Game into a separate utility since it mixes presentation logic with game rules. These are good architectural suggestions for future refactoring, but the current single-class GUI is appropriate for the project's scale.
+
+For **modularity**, the LLM noted that the overall modular split is good. It flagged that `GameLogic` is a compatibility wrapper that adds no real functionality, and that `Board.isValidSize()` accepts a `BoardType` parameter but does not use it, suggesting the interface promises more than the implementation delivers. Based on this feedback, I acknowledge that `GameLogic` could be removed once all legacy tests are migrated, and that `isValidSize()` could be made type-specific in a future sprint if different board types require different size constraints.
+
+Overall, the LLM confirmed that the design follows sound object-oriented principles. The class hierarchy effectively separates common logic from mode-specific behavior, the Board class encapsulates grid management, and the GUI delegates all game logic to the model layer. The suggested improvements are valid for a larger-scale project and could be addressed in future iterations.
