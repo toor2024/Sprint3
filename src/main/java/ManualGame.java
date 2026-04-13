@@ -35,8 +35,11 @@ public class ManualGame extends Game {
         }
 
         // Try randomizing until we get a state with valid moves
-        int attempts = 0;
-        while (attempts < 100) {
+        // Save original state in case all attempts fail
+        Board backup = board.copy();
+        boolean found = false;
+
+        for (int attempts = 0; attempts < 100; attempts++) {
             // Randomly assign PEG or EMPTY to each valid cell
             for (int[] cell : validCells) {
                 board.setCellState(cell[0], cell[1],
@@ -54,9 +57,18 @@ public class ManualGame extends Game {
             }
 
             if (!getValidMoves().isEmpty()) {
+                found = true;
                 break;
             }
-            attempts++;
+        }
+
+        // If no valid randomization found, restore original board
+        if (!found) {
+            for (int[] cell : validCells) {
+                board.setCellState(cell[0], cell[1],
+                    backup.getCellState(cell[0], cell[1]));
+            }
+            return;
         }
 
         gameOver = false;

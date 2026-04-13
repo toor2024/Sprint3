@@ -292,7 +292,7 @@ public class SolitaireApp extends Application {
         GameRecorder loaded;
         try {
             loaded = GameRecorder.loadFromFile(file.getAbsolutePath());
-        } catch (IOException e) {
+        } catch (Exception e) {
             statusLabel.setText("Error loading file: " + e.getMessage());
             return;
         }
@@ -334,19 +334,32 @@ public class SolitaireApp extends Application {
             }
 
             String event = events.get(index[0]);
-            if (event.startsWith("MOVE:")) {
-                Move move = GameRecorder.parseMove(event);
-                game.makeMove(move.getFromRow(), move.getFromCol(),
-                    move.getToRow(), move.getToCol());
-                updateBoard();
-                statusLabel.setText("Replaying... Move " + (index[0] + 1)
-                    + " of " + events.size() + ". Pegs: "
-                    + game.getBoard().getPegCount());
-            } else if (event.startsWith("RANDOMIZE:")) {
-                GameRecorder.applyRandomizeEvent(event, game.getBoard());
-                updateBoard();
-                statusLabel.setText("Replaying... Randomize applied. Pegs: "
-                    + game.getBoard().getPegCount());
+            try {
+                if (event.startsWith("MOVE:")) {
+                    Move move = GameRecorder.parseMove(event);
+                    boolean applied = game.makeMove(move.getFromRow(),
+                        move.getFromCol(), move.getToRow(), move.getToCol());
+                    if (!applied) {
+                        stopReplay();
+                        statusLabel.setText("Replay error: invalid move at step "
+                            + (index[0] + 1) + ". File may be corrupted.");
+                        return;
+                    }
+                    updateBoard();
+                    statusLabel.setText("Replaying... Move " + (index[0] + 1)
+                        + " of " + events.size() + ". Pegs: "
+                        + game.getBoard().getPegCount());
+                } else if (event.startsWith("RANDOMIZE:")) {
+                    GameRecorder.applyRandomizeEvent(event, game.getBoard());
+                    updateBoard();
+                    statusLabel.setText("Replaying... Randomize applied. Pegs: "
+                        + game.getBoard().getPegCount());
+                }
+            } catch (Exception ex) {
+                stopReplay();
+                statusLabel.setText("Replay error at step " + (index[0] + 1)
+                    + ": " + ex.getMessage());
+                return;
             }
             index[0]++;
         }));
