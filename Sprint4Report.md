@@ -72,20 +72,20 @@ Features demonstrated in the video:
 | Source code file name | Production code or test code? | # lines of code |
 |---|---|---|
 | Game.java | Production | 117 |
-| ManualGame.java | Production | 65 |
+| ManualGame.java | Production | 84 |
 | AutomatedGame.java | Production | 34 |
-| GameRecorder.java | Production | 178 |
+| GameRecorder.java | Production | 217 |
 | Board.java | Production | 131 |
 | BoardType.java | Production | 8 |
 | GameLogic.java | Production | 11 |
 | Move.java | Production | 47 |
-| SolitaireApp.java | Production | 499 |
+| SolitaireApp.java | Production | 518 |
 | BoardTest.java | Test | 128 |
 | GameLogicTest.java | Test | 220 |
-| ManualGameTest.java | Test | 222 |
+| ManualGameTest.java | Test | 256 |
 | AutomatedGameTest.java | Test | 152 |
-| GameRecorderTest.java | Test | 264 |
-| **Total** | | **2076** |
+| GameRecorderTest.java | Test | 292 |
+| **Total** | | **2215** |
 
 All source code is located in `Solitaire/src/main/java/` (production) and `Solitaire/src/test/java/` (test).
 
@@ -132,3 +132,6 @@ All source code is located in `Solitaire/src/main/java/` (production) and `Solit
 | 4 | Save/load mixed events (moves + randomize) | All events preserved in order | GameRecorderTest | saveAndLoad_mixedEvents() |
 | 5 | Save/load hexagon board game | Board type preserved | GameRecorderTest | saveAndLoad_hexagonBoard() |
 | 6 | getEvents() return value | Returns defensive copy | GameRecorderTest | getEvents_returnsDefensiveCopy() |
+| 7 | Load file missing GAME_MODE | Throws IOException | GameRecorderTest | loadFromFile_missingGameMode_throwsIOException() |
+| 8 | Load file with invalid board config | Throws IOException | GameRecorderTest | loadFromFile_invalidBoardConfiguration_throwsIOException() |
+| 9 | Randomize with unplayable RNG | Restores original board, returns false | ManualGameTest | randomize_restoresBoardWhenPlayableStateCannotBeGenerated() |
